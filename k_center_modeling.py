@@ -22,7 +22,7 @@ model.i = RangeSet(model.M)#the location of the points
 
 model.d = Param(model.c, model.i) #distance between c and i 
 
-model.x = Var(model.c, model.i, within=Binary) #i 处在 c为中心的的范围内
+model.x = Var(model.c, model.i, within=Binary, initialize=0) #i 处在 c为中心的的范围内
 model.y = Var(model.c, within=Binary) # 坐标c是否为中心
 
 
@@ -46,11 +46,12 @@ def k_rule(model):
 model.k_cons = Constraint(rule=k_rule)
 
 
-data = {None:{
+data_1 = {None:{
     'N':{None: 5},
     'k':{None: 2},
     'M':{None: 5},
-    'd':{(1, 1) :                0.0,
+    'd':{
+    (1, 1) :                0.0,
     (1, 2) :                2.0,
     (1, 3) : 1.4142135623730951,
     (1, 4) :                2.0,
@@ -78,10 +79,10 @@ data = {None:{
     
     }}
 
-instance = model.create_instance(data)
-results = opt.solve(instance)
+instance_1 = model.create_instance(data_1)
+results = opt.solve(instance_1)
 
-instance.pprint()
+instance_1.pprint()
 
 
 
