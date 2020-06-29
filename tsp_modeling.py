@@ -183,11 +183,6 @@ for i in List:
 
         print(i,'--', instance.x[i]())
 
-        
-'''subtour 是一个城市的集合，不是edge/path的集合'''
-
-'''如果存在subtour，是不是s的大小只要n/2就好了？？'''
-
 
 
 
