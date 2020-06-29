@@ -65,9 +65,9 @@ def obj_constraint_2(model, N):
 model.const_2 = Constraint(model.N,rule=obj_constraint_2)
 
 data = {None:{
-    'C':{None:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]},
-    'L':{1:(1150,1760),2:(630,1660),3:(40,2090),4:(750,1100),5:(750,2030),6:(1030,2070),7:(1650,650),8:(1490,1630),9:(790,2260),10:(710,1310),11:(840,550),12:(1170,2300),13:(970,1340),14:(510,700),15:(750,900),16:(1280,1200),17:(230,590),18:(460,860),19:(1040,950),20:(590,1390),21:(830,1770),22:(490,500),23:(1840,1240),24:(1260,1500),25:(1280,790),26:(490,2130),27:(1460,1420),28:(1260,1910),29:(360,1980)},
-    'n':{None: 29}
+    'C':{None:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]},
+    'L':{1:(1150,1760),2:(630,1660),3:(40,2090),4:(750,1100),5:(750,2030),6:(1030,2070),7:(1650,650),8:(1490,1630),9:(790,2260),10:(710,1310),11:(840,550),12:(1170,2300),13:(970,1340),14:(510,700),15:(750,900),16:(1280,1200)},
+    'n':{None: 16}
     }}
 
 instance = model.create_instance(data)
@@ -91,7 +91,7 @@ def getTour():
     global size
     while True:
         tour.add(first)
-        first = int(value(adj_city[first]))
+        first = round(value(adj_city[first]))
         if first == 1:
             size = len(tour)
             break
@@ -111,7 +111,7 @@ def get_min_tour():
                     first = i
                     while True:
                         tour.add(first)
-                        first = int(value(adj_city[first]))
+                        first = round(value(adj_city[first]))
                         if first == i:
                             break 
                     u = u.union(tour)#when this line is executed, min_tour will be assigned to u, i dont fucking know why 
@@ -120,6 +120,9 @@ def get_min_tour():
                         size = len(min_tour)
                     if size == 2:
                         break
+    else:
+        min_tour = tour
+        
                     
 successor()
 getTour()
@@ -129,10 +132,20 @@ while len(min_tour) != len(list((instance.C))):
                           
     expr = sum(instance.x[i,value(adj_city[i])] for i in min_tour)
     expr_2 = sum(instance.x[value(adj_city[i]),i] for i in min_tour)
+    expr_3 = sum(instance.x[i, j] for i in min_tour for j in set(instance.C).difference(min_tour))
     
     instance.cuts.add(expr <= len(min_tour) -1)
     if len(min_tour) >2:
         instance.cuts.add(expr_2 <= len(min_tour) -1)
+    instance.cuts.add(expr_3 >= 1)
+        
+    List = list(instance.x.keys())
+    for i in List:
+        if instance.x[i]() > 0 and instance.x[i]() < 1:
+            instance.x[i].fix(1)
+    
+    
+
     results = opt.solve(instance)
     # List = list(instance.x.keys())
     # for i in List:
@@ -141,9 +154,7 @@ while len(min_tour) != len(list((instance.C))):
     #         plt.plot(instance.L[i[0]], instance.L[i[1]], color='r',linewidth=2)
     #         plt.scatter(instance.L[i[0]], instance.L[i[1]], color='b')
 
-            # print(i,'--', instance.x[i]())
-    print(value(instance.objective))
-    print("min_tour:" + str(min_tour) + str(len(min_tour)))
+    #         print(i,'--', instance.x[i]())
     # instance.cuts.display()
     
     adj_city = {}
@@ -156,7 +167,21 @@ while len(min_tour) != len(list((instance.C))):
     successor()
     getTour()
     get_min_tour()
+    
+    
+print(value(instance.objective))
+print("min_tour:" + str(min_tour) + str(len(min_tour)))
+List = list(instance.x.keys())
+for k in list(instance.L.values()):
+    plt.scatter(k[0], k[1], color='b')
 
+for i in List:
+    if instance.x[i]() != 0:
+        
+        plt.plot([instance.L[i[0]][0],instance.L[i[1]][0]], [instance.L[i[0]][1],instance.L[i[1]][1]], color='r',linewidth=2)
+        print(instance.L[i[0]], '---',instance.L[i[1]])
+
+        print(i,'--', instance.x[i]())
 
         
 '''subtour 是一个城市的集合，不是edge/path的集合'''
