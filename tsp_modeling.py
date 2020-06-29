@@ -114,8 +114,8 @@ def get_min_tour():
                         first = int(value(adj_city[first]))
                         if first == i:
                             break 
-                    u.update(tour)#when this line is executed, min_tour will be assigned to u, i dont fucking know why 
-                    if size > len(tour):
+                    u = u.union(tour)#when this line is executed, min_tour will be assigned to u, i dont fucking know why 
+                    if size >= len(tour):
                         min_tour = tour
                         size = len(min_tour)
                     if size == 2:
@@ -125,7 +125,7 @@ successor()
 getTour()
 get_min_tour()
                     
-while len(tour) != len(list((instance.C))):
+while len(min_tour) != len(list((instance.C))):
                           
     expr = sum(instance.x[i,value(adj_city[i])] for i in min_tour)
     expr_2 = sum(instance.x[value(adj_city[i]),i] for i in min_tour)
