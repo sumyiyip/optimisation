@@ -7,6 +7,8 @@ Created on Fri Jun 19 15:04:33 2020
 """
 
 from pyomo.environ import *
+import matplotlib.pyplot as plt
+
 
 opt = SolverFactory('cplex',executable = '/Applications/CPLEX_Studio1210/cplex/bin/x86-64_osx/cplex')
 
@@ -17,10 +19,17 @@ model.N = Param(within=PositiveIntegers)
 model.k = Param(within=RangeSet(model.N))#k个中心
 model.M = Param(within=PositiveIntegers)
 
+#the coordinates of the cities
+
+
 model.c = RangeSet(model.N)#the location of the centers
 model.i = RangeSet(model.M)#the location of the points
 
-model.d = Param(model.c, model.i) #distance between c and i 
+model.L = Param(model.i, within=Any)
+
+
+model.d = Param(model.c, model.i, initialize= lambda model, i, j : sqrt(((model.L[i][0]- model.L[j][0])**2) + ((model.L[i][1]- model.L[j][1])**2) ))
+#distance between c and i 
 
 model.x = Var(model.c, model.i, within=Binary, initialize=0) #i 处在 c为中心的的范围内
 model.y = Var(model.c, within=Binary) # 坐标c是否为中心
@@ -38,6 +47,11 @@ def x_constraint(model, m):
     return sum(model.x[n,m] for n in model.c) == 1
 # all the vertices are covered and they can only have one center
 model.x_cons = Constraint(model.i, rule=x_constraint)
+
+def n_constraint(model, n):
+    return sum(model.x[n,m] for m in model.i) >= 2*model.y[n]
+model.n_const = Constraint(model.c, rule=n_constraint)
+#every center must at least cover 2 points(including itself)
 
 def y_constraint(model, m , n):
     return model.x[n, m] <= model.y[n]
@@ -64,35 +78,10 @@ def x_y_constraint(model, b):
     #if a and b are both centers, their areas cant be overlapped
 
 data = {None:{
-    'N':{None: 5},
-    'k':{None: 2},
-    'M':{None: 5},
-    'd':{
-    (1, 1) :                0.0,
-    (1, 2) :                2.0,
-    (1, 3) : 1.4142135623730951,
-    (1, 4) :                2.0,
-    (1, 5) : 2.8284271247461903,
-    (2, 1) :                2.0,
-    (2, 2) :                0.0,
-    (2, 3) : 1.4142135623730951,
-    (2, 4) : 2.8284271247461903,
-    (2, 5) :                2.0,
-    (3, 1) : 1.4142135623730951,
-    (3, 2) : 1.4142135623730951,
-    (3, 3) :                0.0,
-    (3, 4) : 1.4142135623730951,
-    (3, 5) : 1.4142135623730951,
-    (4, 1) :                2.0,
-    (4, 2) : 2.8284271247461903,
-    (4, 3) : 1.4142135623730951,
-    (4, 4) :                0.0,
-    (4, 5) :                2.0,
-    (5, 1) : 2.8284271247461903,
-    (5, 2) :                2.0,
-    (5, 3) : 1.4142135623730951,
-    (5, 4) :                2.0,
-    (5, 5) :                0.0}
+    'N':{None: 8},
+    'k':{None: 3},
+    'M':{None:8},
+    'L':{1:(1150,1760),2:(630,1660),3:(40,2090),4:(750,1100),5:(750,2030),6:(1030,2070),7:(1650,650),8:(1490,1630)}
     
     }}
 
@@ -100,6 +89,20 @@ instance = model.create_instance(data)
 results = opt.solve(instance)
 
 instance.pprint()
+
+for k in list(instance.L.values()):
+    plt.scatter(k[0], k[1], color='b')
+    
+List = list(instance.x.keys())
+for k in list(instance.L.values()):
+    plt.scatter(k[0], k[1], color='b')
+
+for i in List:
+    if instance.x[i]() != 0:
+        
+        plt.plot([instance.L[i[0]][0],instance.L[i[1]][0]], [instance.L[i[0]][1],instance.L[i[1]][1]], color='r',linewidth=2)
+
+        print(i,'--', instance.x[i]())
 
 
 
