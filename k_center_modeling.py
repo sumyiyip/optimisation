@@ -24,29 +24,46 @@ model.d = Param(model.c, model.i) #distance between c and i
 
 model.x = Var(model.c, model.i, within=Binary, initialize=0) #i 处在 c为中心的的范围内
 model.y = Var(model.c, within=Binary) # 坐标c是否为中心
+model.D = Var()
 
 
 def obj_rule(model):
-    return max(model.d[c,i]*model.x[c,i] for c in model.c for i in model.i)
+    return model.D
 
 
 model.obj = Objective(sense=minimize, rule=obj_rule)
 
+
 def x_constraint(model, m):
     return sum(model.x[n,m] for n in model.c) == 1
-# all the vertices are covered
+# all the vertices are covered and they can only have one center
 model.x_cons = Constraint(model.i, rule=x_constraint)
 
 def y_constraint(model, m , n):
     return model.x[n, m] <= model.y[n]
 model.y_cons = Constraint(model.c, model.i, rule=y_constraint)
 
+def own_constraint(model, i):
+    return model.x[i,i] == model.y[i]
+model.o_cons = Constraint(model.c, rule=own_constraint)
+#a center can be its own center
+
+
 def k_rule(model):
     return sum( model.y[n] for n in model.c ) == model.k
 model.k_cons = Constraint(rule=k_rule)
+#restrict the number of centers to k
 
+def D_constraint(model,c, i):
+    return (model.d[c,i]*model.x[c,i]) <= model.D
+model.D_cons = Constraint(model.c, model.i, rule=D_constraint)
+#find the max distance of the vertice and its center
 
-data_1 = {None:{
+def x_y_constraint(model, b):
+    return () 
+    #if a and b are both centers, their areas cant be overlapped
+
+data = {None:{
     'N':{None: 5},
     'k':{None: 2},
     'M':{None: 5},
@@ -79,10 +96,10 @@ data_1 = {None:{
     
     }}
 
-instance_1 = model.create_instance(data_1)
-results = opt.solve(instance_1)
+instance = model.create_instance(data)
+results = opt.solve(instance)
 
-instance_1.pprint()
+instance.pprint()
 
 
 
