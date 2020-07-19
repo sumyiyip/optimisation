@@ -6,7 +6,7 @@ Created on Thu Jul  2 12:29:12 2020
 @author: yeh
 """
 
-with open("/Users/yeh/_summer_coProject/knapsack_data/inst3_w.txt")  as f:
+with open("/Users/yeh/PycharmProjects/optimisation/knapsack_data/inst4_w.txt")  as f:
     try:
         data = f.readlines()
     finally:
