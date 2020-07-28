@@ -42,7 +42,7 @@ model.const_2 = Constraint(model.Item, rule=constraint_rule_2)
 
 data_init_1 = {None: dict(
     uncertainty = {None: 0.2},
-    gamma = {None: 3.0},
+    gamma = {None: 1.0},
     size={None: 15},
     capacity={None: 750},
     weight={1 : 70 ,
