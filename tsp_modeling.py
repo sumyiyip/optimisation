@@ -8,6 +8,7 @@ Created on Thu Jun 18 21:41:26 2020
 
 from __future__ import division
 from pyomo.environ import *
+import random
 
 import numpy as np
 import sys
@@ -23,12 +24,16 @@ model.C = Set()
 
 model.n = Param(within=PositiveIntegers)
 
+
 model.L = Param(model.C, within=Any)
 #the coordinates of the cities
 
 
 model.M = RangeSet(model.n)
 model.N = RangeSet(model.n)
+
+model.uncertainty = Param(model.M
+                          , initialize= lambda self: random.uniform(-0.2, 0.2))
 
 model.S = RangeSet(1,model.n-1)
 #the index of the cities, depending on the size of the city set
@@ -43,7 +48,7 @@ model.d = Param(model.N, model.M, initialize= lambda model, i, j : sqrt(((model.
 
 
 def obj_func(model):
-    return sum(model.x[i,j] * model.d[i,j] for i in model.N for j in model.M)
+    return sum(model.x[i,j] * model.d[i,j]*(1+model.uncertainty[i]) for i in model.N for j in model.M)
 
 model.objective = Objective(rule=obj_func,sense=minimize)
 
@@ -110,7 +115,7 @@ def get_min_tour():
                         first = round(value(adj_city[first]))
                         if first == i:
                             break 
-                    u = u.union(tour)#when this line is executed, min_tour will be assigned to u, i dont fucking know why 
+                    u = u.union(tour)
                     if size >= len(tour):
                         min_tour = tour
                         size = len(min_tour)
